@@ -26,39 +26,32 @@ bool UserInputStr(string input){
     else return true;
 }
 
-function<void()> EnterNumberInt(int& varLink, string label){
-    return [&varLink, label](){
+function<void()> EnterNumberInt(int& varLink, string label, istream & is = cin){
+    return [&varLink, label, &is](){
         string raw_input;
         cout << label << " = ";
-        getline(cin,raw_input);
+        getline(is,raw_input);
         while (!UserInputInt(raw_input))
         {
             cout << label << " = ";
-            getline(cin,raw_input);
+            getline(is,raw_input);
         }
         varLink = stoi(raw_input);
     };
 }
 
-function<void()> EnterString(string& varLink,string label){
-    return [&varLink,label](){
+function<void()> EnterString(string& varLink,string label, istream & is = cin){
+    return [&varLink,label, &is](){
         string raw_input = "";
         cout << label << " = ";
-        getline(cin,raw_input);
+        getline(is,raw_input);
         while (!UserInputStr(raw_input))
         {
             cout << label << " = ";
-            getline(cin,raw_input);
+            getline(is,raw_input);
         }
         varLink = raw_input;
     };
-}
-
-string getStringInput(const string& prompt) {
-    string input;
-    cout << prompt;
-    getline(cin, input);
-    return input;
 }
 
 
@@ -71,9 +64,11 @@ void displayAllProjects(const vector<Project>& projects) {
         cout << project << "\n";
     }
 }
-
+//  Разобраться что такое greater
 vector<Project> getSortedProjectsByBudget(vector<Project> projectsToSort) {
-    sort(projectsToSort.begin(), projectsToSort.end(), greater<Project>());
+    sort(projectsToSort.begin(), projectsToSort.end(), [](const Project& a, const Project& b) {
+        return a.calculateAverageBudget() > b.calculateAverageBudget();
+    });
     return projectsToSort;
 }
 
@@ -92,35 +87,58 @@ void sortProjects() {
     displayAllProjects(sortedProjects);
 }
 
-void demonstrateAllConstructors() {
-   cout << "\nDemonstrating Constructors:\n";
+// Запрос данных при работе конструкторов
+void demonstrateDefaultConstructor() {
+    cout << "\nDemonstrating Default Constructor:\n";
+    Project project;
+    cout << project << "\n";
+    projects.push_back(project);
+}
+void demonstrateParameterizedConstructor() {
+    cout << "\nDemonstrating Parameterized Constructor:\n";
 
-    Project project1;
-    cout << "Default Constructor:\n" << project1 << "\n";
+    string name;
+    EnterString(name, "Enter project name: ")();
 
-    vector<int> budget = {100000, 200000, 300000};
-    Project project2("New Project", "2024-12-31", budget);
-    cout << "Parameterized Constructor:\n" << project2 << "\n";
+    string deadline;
+    EnterString(deadline, "Enter project deadline: ")();
 
-    Project project3 = project2;
-    cout << "Copy Constructor:\n" << project3 << "\n";
+    int budgetSize;
+    EnterNumberInt(budgetSize, "Enter number of budget items: ")();
 
-    Project project4("Simple Project");
-    cout << "Conversion Constructor:\n" << project4 << "\n";
+    Project project(name, deadline, {});
+    project.generateRandomBudget(budgetSize);
+    cout << project << "\n";
+    projects.push_back(project);
+}
+void demonstrateCopyConstructor() {
+    cout << "\nDemonstrating Copy Constructor:\n";
+    if (projects.empty()) {
+        cout << "Please add at least one project first.\n";
+        return;
+    }
+
+    int index;
+    EnterNumberInt(index, "Enter the index of the project to copy: ")();
+    if (index < 0 || index >= projects.size()) {
+        cout << "Invalid index. Please enter a valid index.\n";
+        return;
+    }
+
+    Project project3 = projects[index];
+    cout << "Copied Project:\n" << project3 << "\n";
+    projects.push_back(project3);
 }
 
-void demonstrateAllMethods() {
-    cout << "\nDemonstrating Project Methods:\n";
+void demonstrateConversionConstructor() {
+    cout << "\nDemonstrating Conversion Constructor:\n";
 
-    Project project("Test Project", "2024-12-31", {50000, 75000, 100000});
-    cout << "Initial Project:\n" << project << "\n";
+    string projectName;
+    EnterString(projectName, "Enter project name: ")();
 
-    cout << "Average Budget: " << project.calculateAverageBudget() << "\n";
-
-    project.setName("Updated Project Name");
-    project.setDeadline("2025-06-30");
-    project.setBudget({60000, 85000, 110000});
-    cout << "Updated Project:\n" << project << "\n";
+    Project project4 = projectName;
+    cout << project4 << "\n";
+    projects.push_back(project4);
 }
 
 void generateRandomBudgets() {
@@ -129,19 +147,19 @@ void generateRandomBudgets() {
         return;
     }
 
-    int index;
-    EnterNumberInt(index, "Enter the index of the project to generate a random budget for: ");
-    if (index < 0 || index >= projects.size()) {
+    int i;
+    EnterNumberInt(i, "Enter the index of the project to generate a random budget for: ")();
+    if (i < 0 || i >= projects.size()) {
         cout << "Invalid index. Please enter a valid index.\n";
         return;
     }
 
     int budgetSize;
-    EnterNumberInt(budgetSize, "Enter the size of the random budget: ");
-    projects[index].generateRandomBudget(budgetSize);
+    EnterNumberInt(budgetSize, "Enter the size of the random budget: ")();
+    projects[i].generateRandomBudget(budgetSize);
 
-    cout << "Random budget generated for project at index " << index << ".\n";
-    cout << projects[index];
+    cout << "Random budget generated for project at index " << i << ".\n";
+    cout << projects[i];
 }
 
 void demonstrateAddition() {
@@ -151,14 +169,14 @@ void demonstrateAddition() {
     }
 
     int index1;
-    EnterNumberInt(index1, "Enter the index of the first project to add: ");
+    EnterNumberInt(index1, "Enter the index of the first project to add: ")();
     if (index1 < 0 || index1 >= projects.size()) {
         cout << "Invalid index for the first project.\n";
         return;
     }
 
     int index2;
-    EnterNumberInt(index2, "Enter the index of the second project to add: ");
+    EnterNumberInt(index2, "Enter the index of the second project to add: ")();
     if (index2 < 0 || index2 >= projects.size()) {
         cout << "Invalid index for the second project.\n";
         return;
@@ -176,15 +194,15 @@ void demonstratePrefixIncrement() {
     }
 
     int index;
-    EnterNumberInt(index, "Enter the index of the project to increment: ");
+    EnterNumberInt(index, "Enter the index of the project to increment: ")();
     if (index < 0 || index >= projects.size()) {
         cout << "Invalid index for the project.\n";
         return;
     }
 
     cout << "Incrementing project at index " << index << " (prefix)...\n";
-    ++projects[index];
-    cout << "Resulting project:\n" << projects[index];
+    cout <<  projects[index] << endl;
+    cout  << ++projects[index] << endl;
 }
 
 void demonstratePostfixIncrement() {
@@ -194,16 +212,16 @@ void demonstratePostfixIncrement() {
     }
 
     int index;
-    EnterNumberInt(index, "Enter the index of the project to increment: ");
+    EnterNumberInt(index, "Enter the index of the project to increment: ")();
     if (index < 0 || index >= projects.size()) {
         cout << "Invalid index for the project.\n";
         return;
     }
 
     cout << "Incrementing project at index " << index << " (postfix)...\n";
-    Project temp = projects[index]++;
-    cout << "Original project (after increment):\n" << projects[index];
-    cout << "Copy of project (before increment):\n" << temp;
+    cout << projects[index] << endl;
+    cout << projects[index]++ << endl;
+    cout << projects[index] << endl;
 }
 
 void demonstrateAssignment() {
@@ -213,14 +231,14 @@ void demonstrateAssignment() {
     }
 
     int index1;
-    EnterNumberInt(index1, "Enter the index of the project to assign to: ");
+    EnterNumberInt(index1, "Enter the index of the project to assign to: ")();
     if (index1 < 0 || index1 >= projects.size()) {
         cout << "Invalid index for the target project.\n";
         return;
     }
 
     int index2;
-    EnterNumberInt(index2, "Enter the index of the project to assign from: ");
+    EnterNumberInt(index2, "Enter the index of the project to assign from: ")();
     if (index2 < 0 || index2 >= projects.size()) {
         cout << "Invalid index for the source project.\n";
         return;
@@ -231,4 +249,88 @@ void demonstrateAssignment() {
     cout << "Project at index " << index1 << " (after assignment):\n" << projects[index1];
 }
 
+void demonstrateSetName() {
+    int index;
+    EnterNumberInt(index, "Enter the index of the project to set name: ")();
+    if (index < 0 || index >= projects.size()) {
+        cout << "Invalid index. Please enter a valid index.\n";
+        return;
+    }
+    string newName;
+    EnterString(newName, "Enter the new name: ")();
+    projects[index].setName(newName);
+    cout << "Updated Project:\n" << projects[index] << "\n";
+}
+
+void demonstrateSetDeadline() {
+    int index;
+    EnterNumberInt(index, "Enter the index of the project to set deadline: ")();
+    if (index < 0 || index >= projects.size()) {
+        cout << "Invalid index. Please enter a valid index.\n";
+        return;
+    }
+    string newDeadline;
+    EnterString(newDeadline, "Enter the new deadline: ")();
+    projects[index].setDeadline(newDeadline);
+    cout << "Updated Project:\n" << projects[index] << "\n";
+}
+
+void demonstrateSetBudget() {
+    int index;
+    EnterNumberInt(index, "Enter the index of the project to set budget: ")();
+    if (index < 0 || index >= projects.size()) {
+        cout << "Invalid index. Please enter a valid index.\n";
+        return;
+    }
+
+    int budgetSize;
+    EnterNumberInt(budgetSize, "Enter the size of the new budget: ")();
+
+    vector<int> newBudget(budgetSize);
+    for (int i = 0; i < budgetSize; ++i) {
+        EnterNumberInt(newBudget[i], "Enter budget item " + to_string(i + 1) + ": ")();
+    }
+    projects[index].setBudget(newBudget);
+    cout << "Updated Project:\n" << projects[index] << "\n";
+}
+
+void demonstrateCalculateAverageBudget() {
+    int index;
+    EnterNumberInt(index, "Enter the index of the project to calculate average budget: ")();
+    if (index < 0 || index >= projects.size()) {
+        cout << "Invalid index. Please enter a valid index.\n";
+        return;
+    }
+    cout << "Average Budget: " << projects[index].calculateAverageBudget() << "\n";
+}
+
+void demonstrateComparison() {
+        if (projects.size() < 2) {
+        cout << "Please add at least two projects for demonstrate comparision.\n";
+        return;
+    }
+    int index1;
+    EnterNumberInt(index1, "Enter the index of the first project to compare: ")();
+    if (index1 < 0 || index1 >= projects.size()) {
+        cout << "Invalid index. Please enter a valid index.\n";
+        return;
+    }
+
+        int index2;
+    EnterNumberInt(index2, "Enter the index of the second project to compare: ")();
+    if (index2 < 0 || index2 >= projects.size()) {
+        cout << "Invalid index. Please enter a valid index.\n";
+        return;
+    }
+
+        if (projects[index1] > projects[index2])
+        {
+            cout << "Project " << index1 << " > Project " << index2 << endl;
+        } else if(projects[index1] < projects[index2]){
+             cout << "Project " << index1 << " < Project " << index2 << endl;
+        } else{
+             cout << "Project " << index1 << " == Project " << index2 << endl;
+        }
+        
+}
 #endif

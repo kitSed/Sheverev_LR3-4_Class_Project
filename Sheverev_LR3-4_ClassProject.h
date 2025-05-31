@@ -13,7 +13,6 @@
 #include <random>
 
 using namespace std;
-
 class Project {
 private:
     string name;
@@ -42,17 +41,13 @@ public:
     friend istream& operator>>(istream& is, Project& project);
 
     bool operator>(const Project& other) const;
+    bool operator<(const Project& other) const;
+    bool operator>=(const Project& other) const;
+    bool operator<=(const Project& other) const;
     Project operator+(const Project& other) const;
     Project& operator++();
     Project operator++(int);
-    Project& operator--();
-    Project operator--(int);
     Project& operator=(const Project& other);
-    int& operator[](int index);
-    bool operator<(const Project& other) const;
-    bool operator==(const Project& other) const;
-    bool operator!=(const Project& other) const;
-    Project operator*(const Project& other) const;
     
     ~Project();
 };

@@ -1,4 +1,3 @@
-#include "M:\projects\LR_OOP\Sheverev_LR3-4_Class_Project\Sheverev_LR3-4_ClassProject.h"
 #include "M:\projects\LR_OOP\Sheverev_LR3-4_Class_Project\Sheverev_LR3-4_Methods.h"
 
 Project::Project() : name("Unknown"), deadline("TBD"), budget(vector<int>()) {}
@@ -6,10 +5,11 @@ Project::Project() : name("Unknown"), deadline("TBD"), budget(vector<int>()) {}
 Project::Project(const string& name, const string& deadline, const vector<int>& budget) :
     name(name), deadline(deadline), budget(budget) {}
 
-Project::Project(const Project& other) :
-    name(other.name), deadline(other.deadline), budget(other.budget) {}
+Project::Project(const Project& other) : Project(other.name, other.deadline, other.budget) {}
 
-Project::Project(const string& name) : name(name), deadline("TBD"), budget(vector<int>()) {}
+Project::Project(const string& name) : Project() {
+    this->name = name;
+}
 
 Project::Project(string&& name, string&& deadline, vector<int>&& budget):
     name(move(name)),
@@ -53,20 +53,24 @@ ostream& operator<<(ostream& os, const Project& project) {
 }
 
 istream& operator>>(istream& is, Project& project) {
+    int budgetSize;
     cout << "Enter name: ";
-    getline(is >> ws, project.name);
+    is >> project.name;
+    is.ignore(numeric_limits<streamsize>::max(), '\n'); // Очистка буфера
 
     cout << "Enter deadline: ";
-    getline(is >> ws, project.deadline);
+    is >> project.deadline;
+    is.ignore(numeric_limits<streamsize>::max(), '\n'); // Очистка буфера
 
-    int budgetSize;
     cout << "Enter budget size: ";
     is >> budgetSize;
+    is.ignore(numeric_limits<streamsize>::max(), '\n'); // Очистка буфера
     project.budget.resize(budgetSize);
 
-    cout << "Enter budget values: ";
     for (int i = 0; i < budgetSize; ++i) {
+        cout << "Enter budget item " << i + 1 << ": ";
         is >> project.budget[i];
+        is.ignore(numeric_limits<streamsize>::max(), '\n'); // Очистка буфера
     }
 
     return is;
@@ -80,17 +84,26 @@ bool Project::operator<(const Project& other) const {
     return calculateAverageBudget() < other.calculateAverageBudget();
 }
 
-bool Project::operator==(const Project& other) const {
-    return calculateAverageBudget() == other.calculateAverageBudget();
+bool Project::operator>=(const Project& other) const {
+    return !(*this < other);
 }
 
-bool Project::operator!=(const Project& other) const {
-    return calculateAverageBudget() != other.calculateAverageBudget();
+bool Project::operator<=(const Project& other) const {
+    return !(*this > other);
 }
 
+
+// (+)Сложить названия, (+)назначить общий срок(максимальный из двух)
 Project Project::operator+(const Project& other) const {
     Project result = *this;
+    result.name = result.name + " & " + other.name;
     result.budget.insert(result.budget.end(), other.budget.begin(), other.budget.end());
+
+    if (deadline > other.deadline) {
+        result.deadline = deadline;
+    } else {
+        result.deadline = other.deadline;
+    }
     return result;
 }
 
@@ -107,18 +120,6 @@ Project Project::operator++(int) {
     return temp;
 }
 
-Project& Project::operator--(){
-     for (int& b : budget) {
-        b = static_cast<int>(round(b * 0.90));
-    }
-    return *this;
-}
-
-Project Project::operator--(int){
-    Project temp = *this;
-    --(*this);
-    return temp;
-}
 
 Project& Project::operator=(const Project& other) {
     if (this == &other) {
@@ -128,23 +129,6 @@ Project& Project::operator=(const Project& other) {
     deadline = other.deadline;
     budget = other.budget;
     return *this;
-}
-
-int& Project::operator[](int index) {
-    if (index >= 0 && index < budget.size()) {
-        return budget[index];
-    }
-    else{
-        throw out_of_range("Index out of range");
-    }
-}
-
-Project Project::operator*(const Project& other) const{
-    Project result = *this;
-    for(size_t i = 0; i < result.budget.size() && i < other.budget.size(); ++i){
-        result.budget[i] *= other.budget[i];
-    }
-    return result;
 }
 
 Project::~Project() {}

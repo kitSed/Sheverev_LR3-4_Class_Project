@@ -1,0 +1,19 @@
+{
+    "files.associations": {
+        "iostream": "cpp",
+        "vector": "cpp",
+        "compare": "cpp",
+        "xutility": "cpp",
+        "charconv": "cpp",
+        "iterator": "cpp",
+        "system_error": "cpp",
+        "xstring": "cpp",
+        "algorithm": "cpp",
+        "list": "cpp",
+        "string": "cpp",
+        "xhash": "cpp",
+        "xlocinfo": "cpp",
+        "xtree": "cpp",
+        "iosfwd": "cpp"
+    }
+}
